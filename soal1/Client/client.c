@@ -41,27 +41,14 @@ int main(int argc, char const *argv[]) {
     scanf("%s", message_client);
     send(sock, message_client, strlen(message_client),0);
     if (strcmp(message_client, "register")==0){
-        memset(buffer,0,strlen(buffer));
-        read(sock, buffer, 1024);
         scanf("%s", id);
         send(sock, id, strlen(id), 0);
-        memset(buffer,0,strlen(buffer));
-        read(sock,buffer,strlen(buffer));
         scanf("%s", password);
         send(sock, password, strlen(password), 0);
-        memset(buffer,0,strlen(buffer));
-        read(sock,buffer,strlen(buffer));
     }
     else if (strcmp(message_client, "login")==0){
-        memset(buffer,0,strlen(buffer));
-        read(sock, buffer, 1024);
-        scanf("%s", id);
+        scanf("%s%s", id, password);
         send(sock, id, strlen(id), 0);
-        memset(buffer,0,strlen(buffer));
-        read(sock,buffer,strlen(buffer));
-        scanf("%s", password);
         send(sock, password, strlen(password), 0);
-        memset(buffer,0,strlen(buffer));
-        read(sock,buffer,strlen(buffer));
     }
 }
