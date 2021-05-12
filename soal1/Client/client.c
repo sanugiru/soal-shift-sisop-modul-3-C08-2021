@@ -8,15 +8,20 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 #define PORT 8080
+
+#define HANDSHAKE "800"
+#define LOGIN "1"
+#define REGISTER "2"
+#define SUCCESS "3"
   
 int main(int argc, char const *argv[]) {
     struct sockaddr_in address;
     int sock = 0, valread;
     struct sockaddr_in serv_addr;
     char reglog[100];
-    char buffer[1024] = {0};
-    char password[100], id[100];
+    char buffer[BUFSIZ];
     char message_client[100];
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
@@ -37,18 +42,55 @@ int main(int argc, char const *argv[]) {
         return -1;
     }
 
-    read(sock, buffer, strlen(buffer));
-    scanf("%s", message_client);
-    send(sock, message_client, strlen(message_client),0);
-    if (strcmp(message_client, "register")==0){
-        scanf("%s", id);
-        send(sock, id, strlen(id), 0);
-        scanf("%s", password);
-        send(sock, password, strlen(password), 0);
-    }
-    else if (strcmp(message_client, "login")==0){
-        scanf("%s%s", id, password);
-        send(sock, id, strlen(id), 0);
-        send(sock, password, strlen(password), 0);
+    send(sock, HANDSHAKE, strlen(HANDSHAKE),0);
+    fprintf(stdout, "Waiting connection\n");
+    memset(buffer,0,sizeof(buffer));
+    valread = read(sock,buffer,BUFSIZ);
+    fprintf(stdout, "Connected\n");
+
+    char username[100], password[100], authentication_data[100], registration_data[100];
+    while (1){
+        char temp[100];
+        fprintf(stdout, "Choice login or register : ");
+        fprintf(stdin, "%s", temp);
+        if (strcmp(temp, "login")==0){
+            send(sock, LOGIN, strlen(LOGIN),0);
+            memset(buffer,0,sizeof(buffer));
+            valread = read(sock, buffer, BUFSIZ);
+            fprintf(stdout, "Login\nUsername : ");
+            fprintf(stdin, "%s", username);
+            fprintf(stdout, "Password : ");
+            fprintf(stdin, "%s", password);
+            sprintf(authentication_data, "%s:%s", username, password);
+
+            send(sock, authentication_data, strlen(authentication_data), 0);
+            memset(buffer,0,sizeof(buffer));
+            valread = read(sock, buffer, BUFSIZ);
+
+            if (strcmp(buffer, SUCCESS)==0){
+                fprintf(stdout, "Add data successfully\n");
+                // ----------authentication function
+            }
+            else fprintf(stdout, "Add data failed\n");
+        }
+        else if (strcmp(temp, "register")==0){
+            send(sock, REGISTER, strlen(REGISTER), 0);
+            
+            fprintf(stdout, "Register\nUsername : ");
+            fprintf(stdin, "%s", username);
+            fprintf(stdout, "Password : ");
+            fprintf(stdin, "%s", password);
+            sprintf(registration_data, "%s:%s", username, password);
+
+            send(sock, registration_data, strlen(registration_data), 0);
+            memset(buffer, 0, sizeof(buffer));
+            valread = read(sock, buffer, BUFSIZ);
+
+            if (strcmp(buffer, SUCCESS)==0){
+                fprintf(stdout, "Registration success\n");
+            }
+            else fprintf(stdout, "Registration failed\n");            
+        }
+        else fprintf(stdout, "Try again\n");
     }
 }
