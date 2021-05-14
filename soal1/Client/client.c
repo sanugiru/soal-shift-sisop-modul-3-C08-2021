@@ -13,15 +13,17 @@
 #include <sys/sendfile.h>
 #define PORT 8080
 
-#define CONNECT "800"
-#define LOGIN "1"
-#define REGISTER "2"
-#define SUCCESS "3"
-#define ADD "4"
-#define DOWNLOAD "5"
-#define SEE "6"
-#define DELETE "7"
-#define FIND "8"
+#define CONNECT "1"
+#define LOGIN "2"
+#define REGISTER "3"
+#define SUCCESS "4"
+#define ADD "5"
+#define DOWNLOAD "6"
+#define SEE "7"
+#define DELETE "8"
+#define FIND "9"
+
+// complete delete, add nggak ngulang, see, find kalau benar, 
 
 int main(int argc, char const *argv[]) {
     struct sockaddr_in address;
@@ -58,31 +60,34 @@ int main(int argc, char const *argv[]) {
     char username[100], password[100], authentication_data[100], registration_data[100];
     while (1){
         char temp[100];
+        memset(temp,0,sizeof(temp));
         fprintf(stdout, "Choice login or register : ");
-        fprintf(stdin, "%s", temp);
+        fscanf(stdin, "%s", temp);
         if (strcmp(temp, "login")==0){
             send(sock, LOGIN, strlen(LOGIN),0);
             memset(buffer,0,sizeof(buffer));
             valread = read(sock, buffer, BUFSIZ);
-            fprintf(stdout, "Login\nUsername : ");
-            fprintf(stdin, "%s", username);
+            fprintf(stdout, "Username : ");
+            fscanf(stdin, "%s", username);
             fprintf(stdout, "Password : ");
-            fprintf(stdin, "%s", password);
+            fscanf(stdin, "%s", password);
             sprintf(authentication_data, "%s:%s", username, password);
-
+            // memset(username, 0, sizeof(username));
+            // memset(password,0,sizeof(password));
             send(sock, authentication_data, strlen(authentication_data), 0);
             memset(buffer,0,sizeof(buffer));
             valread = read(sock, buffer, BUFSIZ);
 
             if (strcmp(buffer, SUCCESS)==0){
-                fprintf(stdout, "Add data successfully\n");
+                fprintf(stdout, "Login success\n");
                 char size[100], filename[100];
                 int remain, file_size;
                 while(1){
-                    fprintf(stdout, "choice one : add, download, delete, see, or find");
+                    fprintf(stdout, "choice one : add, download, delete, see, or find\nChoice : ");
                     char temp2[100];
+                    memset(temp2, 0, sizeof(temp2));
                     fscanf(stdin, "%s", temp2);
-                    if (strcmp(temp2, "add")){
+                    if (strcmp(temp2, "add")==0){
                         char publish[100], year[10], file_path[100], add[100];
                         int flag, sent=0;
                         // sent = sent bytes
@@ -93,12 +98,12 @@ int main(int argc, char const *argv[]) {
                         send(sock, ADD, strlen(ADD), 0);
                         memset(buffer,0,sizeof(buffer));
                         valread = read(sock, buffer, BUFSIZ);
-                        fprintf(stdout, "Publisher Username : ");
-                        fprintf(stdin, "%s", publish);
+                        fprintf(stdout, "Publisher: ");
+                        fscanf(stdin, "%s", publish);
                         fprintf(stdout, "Tahun Publikasi : ");
-                        fprintf(stdin, "%s", year);
+                        fscanf(stdin, "%s", year);
                         fprintf(stdout, "Filepath: ");
-                        fprintf(stdin, "%s", file_path);
+                        fscanf(stdin, "%s", file_path);
                         sprintf(add, "%s:%s:%s", publish, year, file_path);
                         
                         // upload request
@@ -125,7 +130,7 @@ int main(int argc, char const *argv[]) {
                         }
                         else fprintf(stdout, "Add data is failed\n");
                     }
-                    else if (strcmp(temp2, "download")){
+                    else if (strcmp(temp2, "download")==0){
                         ssize_t flag_download;
                         send(sock, DOWNLOAD, strlen(DOWNLOAD), 0);
                         memset(buffer, 0 , sizeof(buffer));
@@ -154,9 +159,9 @@ int main(int argc, char const *argv[]) {
                             }
                             fclose(file_receive);
                         }
-                        else fprintf(stdout, "File %s doesn't exist", filename);
+                        else fprintf(stdout, "File %s doesn't exist\n", filename);
                     }
-                    else if (strcmp(temp2, "delete")){
+                    else if (strcmp(temp2, "delete")==0){
                         send(sock, DELETE, strlen(DELETE), 0);
                         memset(buffer, 0, sizeof(buffer));
                         valread = read(sock, buffer, BUFSIZ);
@@ -170,16 +175,17 @@ int main(int argc, char const *argv[]) {
                         }
                         else fprintf(stdout, "File %s doesn't exist\n", filename);
                     }
-                    else if (strcmp(temp2, "see")){
+                    else if (strcmp(temp2, "see")==0){
                         send(sock, SEE, strlen(SEE), 0);
                         memset(buffer, 0, sizeof(buffer));
                         valread = read(sock, buffer, BUFSIZ);
                         fprintf (stdout, "%s", buffer);
                     }
-                    else if (strcmp(temp2, "find")){
+                    else if (strcmp(temp2, "find")==0){
                         send(sock, FIND, strlen(FIND), 0);
                         memset(buffer,0,sizeof(buffer));
                         valread = read(sock, buffer, BUFSIZ);
+                        fprintf(stdout, "find ");
                         fscanf(stdin, "%s", filename);
                         send(sock, filename, strlen(filename), 0);
                         memset(buffer, 0, sizeof(buffer));
@@ -196,11 +202,13 @@ int main(int argc, char const *argv[]) {
         }
         else if (strcmp(temp, "register")==0){
             send(sock, REGISTER, strlen(REGISTER), 0);
+            memset(buffer, 0, sizeof(buffer));
+            valread = read(sock, buffer, BUFSIZ);
             
-            fprintf(stdout, "Register\nUsername : ");
-            fprintf(stdin, "%s", username);
+            fprintf(stdout, "Username : ");
+            fscanf(stdin, "%s", username);
             fprintf(stdout, "Password : ");
-            fprintf(stdin, "%s", password);
+            fscanf(stdin, "%s", password);
             sprintf(registration_data, "%s:%s", username, password);
 
             send(sock, registration_data, strlen(registration_data), 0);
