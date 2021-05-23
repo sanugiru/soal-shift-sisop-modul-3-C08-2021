@@ -59,6 +59,5 @@ void main(){
 
     printf("Hasil Faktorial Matrix A terhadap Matrix B:\n");
     cek(value);
-
     shmdt(value);
 }
