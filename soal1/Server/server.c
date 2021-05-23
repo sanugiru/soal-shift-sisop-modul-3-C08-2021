@@ -28,9 +28,12 @@ char buffer[BUFSIZ];
 int server_fd, sock, valread;
 
 void *new_connection();
+void upload_request(int sock, char filename[]);
 int exist_file(char file_path[]);
 void check_tsv(char string[], char flag[], char delimiter, int *index);
 int substring_tsv(char temp[], char filename[]);
+int substring(char line[], char filename[]);
+void handle_delete(char file_name[], int line_number);
 char* login();
 
 int main(int argc, char const *argv[]) {
@@ -109,83 +112,94 @@ void* new_connection(){
                     valread = read(sock, buffer, BUFSIZ);
                     strcpy(request, buffer);
                     if(strcmp(request, ADD)==0){
-                        char filename[100], publisher[100], tahun_publikasi[10], filepath[100];
-                        int size, remain;
-                        ssize_t len;
-                        send(sock, SUCCESS, strlen(SUCCESS),0);
-                        FILE *file_add;
-                        file_add = fopen("/home/deka/modul3/Server/file.tsv", "a+");
-                        memset(buffer,0,sizeof(buffer));
-                        valread = read(sock, buffer, BUFSIZ);
-                        // extract
-                        int temp_add=0;
-                        check_tsv(buffer,filename, ':', &temp_add);
-                        check_tsv(buffer,publisher, ':', &temp_add);
-                        check_tsv(buffer,tahun_publikasi, ':', &temp_add);
-                        sprintf(filepath, "FILES/%s", filename);
-                        file_add = fopen(filepath, "w");
-                        //
-                        send(sock, SUCCESS, strlen(SUCCESS), 0);
-                        memset(buffer,0,sizeof(buffer));
-                        recv(sock,buffer,BUFSIZ,0);
-                        size = atoi(buffer);
 
-                        if (file_add == NULL){
-                            perror("File doesn't exist\n");
+                        fprintf(stdout, "Enter handle add request\n");
+
+                        send(sock, SUCCESS, strlen(SUCCESS), 0);
+                        fprintf(stdout, "Sent status %s\n", SUCCESS);
+
+                        FILE *fp;
+                        fp = fopen("file.tsv", "a+");
+                        if (fp == NULL) {
+                            perror("open file failed");
                             exit(EXIT_FAILURE);
                         }
-                        remain = size;
-                        while((remain>0)&&((len=recv(sock,buffer,BUFSIZ,0))>0)){
-                            fwrite(buffer, sizeof(char), len, file_add);
-                            remain -= len;
-                            fprintf(stdout, "Receive %ld bytes and remain %d bytes", len, remain);
-                        }
-                        fclose(file_add);
-
-                        fprintf(file_add, "%s\t", filepath);
-                        fprintf(file_add, "%s\t", publisher);
-                        fprintf(file_add, "%s\n", tahun_publikasi);
-                        send(sock, SUCCESS, strlen(SUCCESS), 0);
-                        FILE *log_file = fopen("running.log", "a+");
                         
-                        fprintf(log_file, "Tambah: %s (%s)\n", filename, request);
-                        fclose(log_file);
-                        fclose(file_add);
+                        memset(buffer,0,sizeof(buffer));
+                        valread = read(sock, buffer, BUFSIZ);
+
+                        char filename[50];
+                        char publisher[50];
+                        char tahun_pub[10];
+                        int index =0;
+                        check_tsv(buffer, filename, ':', &index);
+                        check_tsv(buffer, publisher, ':', &index);
+                        check_tsv(buffer, tahun_pub, ':', &index);
+
+                        char file_path[100];
+                        sprintf(file_path, "FILES/%s", filename);
+
+                        upload_request(sock, filename);
+
+                        fprintf(fp, "%s\t", file_path);
+                        fprintf(fp, "%s\t", publisher);
+                        fprintf(fp, "%s\n", tahun_pub);
+                        
+                        send(sock, SUCCESS, strlen(SUCCESS), 0);
+
+                        FILE *fp_log;
+                        fp_log = fopen("running.log", "a+");
+
+                        fprintf(fp_log, "Tambah: %s (%s)\n", filename, request);
+
+                        fclose(fp_log);
+                        fclose(fp);
                     }
                     else if (strcmp(request, DOWNLOAD)==0){
-                        send(sock, SUCCESS, strlen(SUCCESS),0);
-                        int remain, sent_bytes=0;
-                        char size[100], file_path[100];
+                        int fd;
+                        int sent_bytes = 0;
+                        char file_size[256];
                         struct stat file_stat;
                         off_t offset;
-                        int flag;
+                        int remain_data;
+
+                        send(sock, SUCCESS, strlen(SUCCESS), 0);
+
                         memset(buffer,0,sizeof(buffer));
-                        valread = read(sock,buffer,BUFSIZ);
-                        char file_download[100];
-                        strcpy(file_download,buffer);
+                        valread = read(sock, buffer, BUFSIZ);
 
-                        sprintf(file_path, "FILES/%s", file_download);
-                        if(exist_file(file_path)){
-                            send(sock,SUCCESS,strlen(SUCCESS),0);
+                        char filename[50];
+                        strcpy(filename, buffer);
+
+                        char file_path[100];
+                        sprintf(file_path, "/home/deka/modul3/Server/FILES/%s", filename);
+
+                        fprintf(stdout, "%s %ld\n", file_path, strlen(file_path));
+
+                        if (exist_file(file_path)) {
+                            send(sock, SUCCESS, strlen(SUCCESS), 0);
+                            
                             memset(buffer,0,sizeof(buffer));
-                            valread = read(sock,buffer,BUFSIZ);
-                            flag = open(file_path, O_RDONLY);
+                            valread = read(sock, buffer, BUFSIZ);
 
-                            if (fstat(flag, &file_stat)<0){
-                                perror("File stat error");
-                                exit(EXIT_FAILURE);
+                            fd = open(file_path, O_RDONLY);
+
+                            if (fstat(fd, &file_stat) < 0) {
+                                    perror("filestat error");
+                                    exit(EXIT_FAILURE);
                             }
-                            sprintf(size, "%ld", file_stat.st_size);
-                            send(sock, size, sizeof(size),0);
-                            fprintf(stdout, "Sen %s bytes\n", size);
+
+                            sprintf(file_size, "%ld", file_stat.st_size);
+                            send(sock, file_size, sizeof(file_size), 0);
+
                             offset = 0;
-                            remain = file_stat.st_size;
-                            while(((sent_bytes=sendfile(sock,flag,&offset,BUFSIZ))>0)&&(remain>0)){
-                                remain -=sent_bytes;
+                            remain_data = file_stat.st_size;
+
+                            while (((sent_bytes = sendfile(sock, fd, &offset, BUFSIZ)) > 0) && (remain_data > 0)) {   
+                                    remain_data -= sent_bytes;
                             }
-                        }
-                        else {
-                            send(sock, FAIL, strlen(FAIL),0);
+                        } else {
+                            send(sock, FAIL, strlen(FAIL), 0);
                         }
                     }
                     else if (strcmp(request, SEE)==0){
@@ -196,7 +210,6 @@ void* new_connection(){
                             char name[100], publisher[100], tahun_publikasi[10];
                             char extension[100], filepath[100], folderpath[100];
                             int temp_see_tsv = 0;
-                            fprintf(stdout, "folder path %s\n", folderpath);
                             check_tsv(temp_see,folderpath,'/',&temp_see_tsv);
                             check_tsv(temp_see,name,'.',&temp_see_tsv);
                             check_tsv(temp_see,extension,'\t',&temp_see_tsv);
@@ -209,49 +222,54 @@ void* new_connection(){
                         fclose (file_see);
                     }
                     else if (strcmp(request, DELETE)==0){
-                        char delete_file[100], format[1024], temp[500];
-                        char filename[100];
-                        memset(format,0,sizeof(format));
-                        int temp_counter=0, temp_exist=0;
-                        send(sock, SUCCESS, strlen(SUCCESS),0);
+                        send(sock, SUCCESS, strlen(SUCCESS), 0);
                         memset(buffer,0,sizeof(buffer));
-                        valread=read(sock,buffer,BUFSIZ);
-                        strcpy(delete_file,buffer);
-                        char filename_delete[] = "file.tsv";
-                        FILE *file_delete = fopen(filename_delete, "r");
+                        valread = read(sock, buffer, BUFSIZ);
+
+                        char filename_to_delete[50];
+                        strcpy(filename_to_delete, buffer);
+
+                        char line[256];
+                        char formatted_data[BUFSIZ];
                         
-                        while(fgets(temp, sizeof temp, file_delete)){
-                            temp_counter++;char delete_file[100], format[1024], temp[500];
-                        char filename[100];
-                        memset(format,0,sizeof(format));
-                        int temp_counter=0, temp_exist=0;
-                        send(sock, SUCCESS, strlen(SUCCESS),0);
-                        memset(buffer,0,sizeof(buffer));
-                        valread=read(sock,buffer,BUFSIZ);
-                        strcpy(delete_file,buffer);
-                        char filename_delete[] = "file.tsv";
-                        FILE *file_delete = fopen(filename_delete, "r");
-                        
-                        while(fgets(temp, sizeof temp, file_delete)){
-                            temp_counter++;
-                            if(substring_tsv(temp,delete_file)){
-                                char filepath_find[100];
-                                // char new_filepath[100];
-                                sprintf(filepath_find, "FILES/%s", delete_file);
-                                // sprintf(new_filepath, "FILES/old-%s", delete_file);
-                                remove(filename_delete);
-                                // FILE *name_file_delete = fopen(file_delete,"r");
+                        char filename[] = "file.tsv";
+                        FILE *fp = fopen(filename, "r");
+                        int line_counter = 0;
+
+                        formatted_data[0] = '\0';
+
+                        int is_file_exist = 0;
+
+                        while (fgets(line, sizeof line, fp)) {
+                            line_counter++;
+                            if (substring(line, filename_to_delete)){
+                                char file_path[100];
+                                sprintf(file_path, "FILES/%s", filename_to_delete);
+
+                                char file_path_new[100];
+                                sprintf(file_path_new, "FILES/old-%s", filename_to_delete);
+
+                                handle_delete(filename, line_counter);
+
+                                rename(file_path, file_path_new);
+                                is_file_exist = 1;
+                                break;      
                             }
                         }
-                            if(substring_tsv(temp,delete_file)){
-                                char filepath_find[100];
-                                // char new_filepath[100];
-                                sprintf(filepath_find, "FILES/%s", delete_file);
-                                // sprintf(new_filepath, "FILES/old-%s", delete_file);
-                                remove(filename_delete);
-                                // FILE *name_file_delete = fopen(file_delete,"r");
-                            }
+
+                        FILE *fp_log;
+                        fp_log = fopen("running.log", "a+");
+
+                        if (is_file_exist) {
+                            fprintf(fp_log, "Hapus: %s (%s)\n", filename_to_delete, request);
+
+                            send(sock, SUCCESS, strlen(SUCCESS), 0);
+                        } else {
+                            send(sock, FAIL, strlen(FAIL), 0);
                         }
+
+                        fclose(fp);
+                        fclose(fp_log);
                     }
                     else if (strcmp(request, FIND)==0){
                         char filename[100], format[1024], temp_find[500];
@@ -338,4 +356,77 @@ void check_tsv(char string[], char flag[], char delimiter, int *index){
     }
     flag[temp] = '\0';
     *index +=1;
+}
+
+void upload_request(int sock, char filename[]) {
+    char buffer[BUFSIZ];
+    int valread;
+
+    int file_size;
+    int remain_data;
+    ssize_t len;
+    FILE *received_file;
+
+    send(sock, SUCCESS, strlen(SUCCESS), 0);
+
+    memset(buffer,0,sizeof(buffer));
+    recv(sock, buffer, BUFSIZ, 0);
+    file_size = atoi(buffer);
+
+    fprintf(stdout, "Received file with size %d bytes\n", file_size);
+
+    char file_path[100];
+    sprintf(file_path, "FILES/%s", filename);
+
+    received_file = fopen(file_path, "w");
+    if (received_file == NULL) {
+            perror("Failed to open file");
+            exit(EXIT_FAILURE);
+    }
+
+    remain_data = file_size;
+
+    while ((remain_data > 0) && ((len = recv(sock, buffer, BUFSIZ, 0)) > 0)) {
+            fwrite(buffer, sizeof(char), len, received_file);
+            remain_data -= len;
+            fprintf(stdout, "Receive %ld bytes and %d bytes remaining\n", len, remain_data);
+    }
+    fclose(received_file);
+}
+
+int substring(char line[], char filename[]) {
+    char filename_exist[50];
+    char delimiter = '\t';
+    int idx = 0;
+    check_tsv(line, filename_exist, delimiter, &idx);
+    if (strstr(filename_exist, filename))
+        return 1;
+    else 
+        return 0;
+}
+
+void handle_delete(char file_name[], int line_number) {
+    FILE *fp, *fp_temp;
+    char str[BUFSIZ];
+    char file_name_temp[] = "temp_file.txt";
+    int counter = 0;
+    char ch;
+
+    fp = fopen(file_name, "r");
+    fp_temp = fopen(file_name_temp, "w"); 
+
+    while (!feof(fp)) {
+        strcpy(str, "\0");
+        fgets(str, BUFSIZ, fp);
+        if (!feof(fp)) {
+            counter++;
+            if (counter != line_number) {
+                fprintf(fp_temp, "%s", str);
+            }
+        }
+    }
+    fclose(fp);
+    fclose(fp_temp);
+    remove(file_name);
+    rename(file_name_temp, file_name);
 }
