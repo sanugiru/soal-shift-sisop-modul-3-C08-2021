@@ -374,7 +374,7 @@ file.tsv
 hasil see dan find  
 ![Screenshot_2021-05-23_11-51-01](https://user-images.githubusercontent.com/55046884/119248719-38239080-bbbd-11eb-966a-7c4fcfbde9ee.png)
 
-hasil dari delete - hasil delete ditandai dengan nama file ditambah -old
+hasil dari delete - hasil delete ditandai dengan nama file ditambah -old  
 ![Screenshot_2021-05-23_11-52-11](https://user-images.githubusercontent.com/55046884/119248736-630de480-bbbd-11eb-8276-d7852f4bca4f.png)
 
 
