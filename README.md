@@ -480,10 +480,11 @@ long long cek(int value[]){
 2b. Mengalami kebingungan dalam penggunaan thread untuk perhitungan faktorial
 ### **Foto**
 Output 2a
+
 ![2a](https://user-images.githubusercontent.com/70801807/119260959-5316f480-bbff-11eb-8f9c-d1e1a1cfef1c.PNG)
 
-
 Output 2b
+
 ![2b](https://user-images.githubusercontent.com/70801807/119260991-75a90d80-bbff-11eb-91b7-4c6b7e66bf4a.PNG)
 ## SOAL 3  
 ### **Pembahasan**
