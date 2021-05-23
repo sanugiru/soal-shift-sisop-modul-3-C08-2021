@@ -361,6 +361,23 @@ fclose(fp_log);
 ### **Kendala**
 1. Proses download masih belum bisa mendeteksi letak dari file
 
+### **Foto**
+login register dan akun.txt  
+![Screenshot_2021-05-23_11-44-17](https://user-images.githubusercontent.com/55046884/119248613-8be1aa00-bbbc-11eb-8139-a8c33f721311.png)
+
+Hasil dari add di dalam folder FILES  
+![Screenshot_2021-05-23_11-48-33](https://user-images.githubusercontent.com/55046884/119248668-f09d0480-bbbc-11eb-8490-d9da922cc622.png)
+
+file.tsv  
+![Screenshot_2021-05-23_11-49-41](https://user-images.githubusercontent.com/55046884/119248695-09a5b580-bbbd-11eb-971e-0cfb2dfcb0b9.png)
+
+hasil see dan find  
+![Screenshot_2021-05-23_11-51-01](https://user-images.githubusercontent.com/55046884/119248719-38239080-bbbd-11eb-966a-7c4fcfbde9ee.png)
+
+hasil dari delete - hasil delete ditandai dengan nama file ditambah -old
+![Screenshot_2021-05-23_11-52-11](https://user-images.githubusercontent.com/55046884/119248736-630de480-bbbd-11eb-8276-d7852f4bca4f.png)
+
+
 ## SOAL 2  
 ### **Pembahasan**
 ### **Kendala**
