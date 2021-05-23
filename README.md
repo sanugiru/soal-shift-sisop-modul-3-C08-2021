@@ -380,8 +380,109 @@ hasil dari delete - hasil delete ditandai dengan nama file ditambah -old
 
 ## SOAL 2  
 ### **Pembahasan**
-### **Kendala**
+a. Membuat Program yang memproses perkalian matriks berdasarkan input user
 
+User melakukan input 2 buah matrix, dimana matriks A berukuran 4x3 dan matriks B berukuran 3x6.
+```
+    printf("INPUT MATRIX A: \n");
+    // {{1, 2, 5},
+    // {3, 4, 2},
+    // {5, 6, 1},
+    // {7, 8, 3}
+    for(int x=0; x<4; x++){
+        for(int y=0; y<3; y++){
+            scanf("%d", &mtxA[x][y]);
+        }
+    }
+    int mtxB[3][6];
+    printf("INPUT MATRIX B: \n");
+    // {{1, 2, 2, 3, 3, 1},
+    // {4, 5, 5, 6, 6, 4},
+    // {7, 8, 8, 9, 9, 7}}
+    for(int x=0; x<3; x++){
+        for(int y=0; y<6; y++){
+            scanf("%d", &mtxB[x][y]);
+        }
+    }
+```
+Selanjutnya, dilakukan perkalian antara 2 buah matriks yang telah dimasukkan dan di print lalu hasil perkalian matrik di masukkan kedalam variabel value untuk dilakukan share memory sehingga hasil perhitungan di 2a dapat digunakan di dalam soal 2b.
+```
+   for (baris = 0; baris < 4; baris++) {
+      for (kolom = 0; kolom < 6; kolom++) {
+        for (tengah = 0; tengah < 3; tengah++) {
+          sum = sum + mtxA[baris][tengah]*mtxB[tengah][kolom];
+        }
+ 
+        hasilKali[baris][kolom] = sum;
+        sum = 0;
+      }
+    }
+ 
+    printf("Hasil Matriks:\n");
+     for (baris = 0; baris < 4; baris++) {
+      for (kolom = 0; kolom < 6; kolom++){
+        printf("%d\t", hasilKali[baris][kolom]);
+        value[baris*6+kolom] = hasilKali[baris][kolom];
+      }
+      printf("\n");
+    }
+```
+
+
+b. Melakukan perhitungan faktorial dari output 2a dan inputan mamtriks berukuran 4x6 :
+
+Menggunakan template share memory ;
+```
+    key_t key = 1234;
+    int *value;
+    int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
+    value = shmat(shmid, NULL, 0);
+
+```
+Selanjutnya user melakukan inputan matriks sebesar 4x6 untuk batas faktorial terhadap matriks output 2a
+```
+    printf("INPUT MATRIX B: \n");
+    for(int i=0; i<24;i++){
+        scanf("%d",&arr[i]);
+    }
+```
+Setelah itu dilakukan perhitungan faktorial dengan syarat yang sudah ditentukan oleh soal:
+```
+long long cek(int value[]){
+    for(int i=0; i<24; i++){
+        if(value[i] == 0 || arr[i] == 0){
+            printf("0\t");
+        }
+        else if(value[i] < arr[i]){
+            int batas = value[i];
+            long long hasil = value[i];
+            for(int x = 1; x<batas; x++){
+                hasil *= (batas-x);
+            }
+            printf("%lld\t", hasil);
+        }
+        else if(value[i] >= arr[i]){
+            int batas = arr[i];
+            int batas2 = value[i];
+            long long hasil = value[i];
+            for(int x = 1; x<batas; x++){
+                hasil *= (batas2-x);
+            }
+            printf("%lld\t", hasil);
+        }
+        if(i > 0 && (i+1)%6 == 0){
+            printf("\n");
+        }
+    }
+}
+```
+### **Kendala**
+2b. Mengalami kebingungan dalam penggunaan thread untuk perhitungan faktorial
+### **Foto**
+--Output 2a
+![2a](https://user-images.githubusercontent.com/70801807/119260959-5316f480-bbff-11eb-8f9c-d1e1a1cfef1c.PNG)
+--Output 2b
+![2b](https://user-images.githubusercontent.com/70801807/119260991-75a90d80-bbff-11eb-91b7-4c6b7e66bf4a.PNG)
 ## SOAL 3  
 ### **Pembahasan**
 ### **Kendala**
