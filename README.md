@@ -365,6 +365,10 @@ fclose(fp_log);
 login register dan akun.txt  
 ![Screenshot_2021-05-23_11-44-17](https://user-images.githubusercontent.com/55046884/119248613-8be1aa00-bbbc-11eb-8139-a8c33f721311.png)
 
+Isi akun.txt dengan username deka dan password kaka  
+![Screenshot_2021-05-24_21-28-03](https://user-images.githubusercontent.com/55046884/119362582-0e5e8c80-bcd7-11eb-8fb4-d26344038bb2.png)
+
+
 Hasil dari add di dalam folder FILES  
 ![Screenshot_2021-05-23_11-48-33](https://user-images.githubusercontent.com/55046884/119248668-f09d0480-bbbc-11eb-8490-d9da922cc622.png)
 
