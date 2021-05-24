@@ -377,6 +377,13 @@ hasil see dan find
 hasil dari delete - hasil delete ditandai dengan nama file ditambah -old  
 ![Screenshot_2021-05-23_11-52-11](https://user-images.githubusercontent.com/55046884/119248736-630de480-bbbd-11eb-8276-d7852f4bca4f.png)
 
+download  
+![Screenshot_2021-05-24_21-16-10](https://user-images.githubusercontent.com/55046884/119361082-76ac6e80-bcd5-11eb-92b3-ca2b401f7738.png)
+
+file hasil download  
+![Screenshot_2021-05-24_21-17-39](https://user-images.githubusercontent.com/55046884/119361144-87f57b00-bcd5-11eb-907c-300a96d54e78.png)
+
+
 
 ## SOAL 2  
 ### **Pembahasan**
